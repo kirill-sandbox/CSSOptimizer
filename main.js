@@ -1,29 +1,38 @@
 var fs = require('fs');
 
-String.prototype.trim = function () {return this.replace(/^\s+|\s+$/g, '');}
-String.prototype.leftTrim = function () {return this.replace(/^\s+/,'');}
-String.prototype.rightTrim = function () {return this.replace(/\s+$/,'');}
-String.prototype.fullTrim = function () {return this.replace(/(?:(?:^|\n)\s+|\s+(?:$|\n))/g,'').replace(/\s+/g,' ');}
+String.prototype.trim = function () {
+    return this.replace(/^\s+|\s+$/g, '');
+}
+String.prototype.leftTrim = function () {
+    return this.replace(/^\s+/, '');
+}
+String.prototype.rightTrim = function () {
+    return this.replace(/\s+$/, '');
+}
+String.prototype.fullTrim = function () {
+    return this.replace(/(?:(?:^|\n)\s+|\s+(?:$|\n))/g, '').replace(/\s+/g, ' ');
+}
 
-var filePath = 'test.css';
-fs.readFile(filePath, 'utf8', function (err, data) {
-    if (err) {
-        return console.log(err);
-    }
+function processCSSFile(filePath) {
+    fs.readFile(filePath, 'utf8', function (err, data) {
+        if (err) {
+            return console.log(err);
+        }
 
-    var parsedCSS = parseCSS(data);
-    var pairs = generatePairs(parsedCSS);
-    pairs = compare (pairs);
-    pairs = clearNotEnoughMatch (pairs, 3);
-    pairs = sort (pairs);
-    display(pairs);
-});
+        var parsedCSS = parseCSS(data);
+        var pairs = generatePairs(parsedCSS);
+        pairs = compare(pairs);
+        pairs = clearNotEnoughMatch(pairs, 3);
+        pairs = sort(pairs);
+        display(pairs);
+    });
+}
 
-function removeTabsAndNewLines (text) {
+function removeTabsAndNewLines(text) {
     return text.replace('\n', '').replace('\r', '').replace('\t', '');
 }
 
-function parseCSS (data) {
+function parseCSS(data) {
     data = removeTabsAndNewLines(data);
 
     var parts = data.split('}');
@@ -38,7 +47,7 @@ function parseCSS (data) {
 
         var propertiesWithValues = String(selectorAndProperties[1]).split(';');
         var properties = [];
-        for(var j = 0; j < propertiesWithValues.length; j++) {
+        for (var j = 0; j < propertiesWithValues.length; j++) {
             var propertyNameAndPropertyValue = String(propertiesWithValues[j]).split(':');
 
             var propertyNameText = String(propertyNameAndPropertyValue[0]).fullTrim();
@@ -62,7 +71,7 @@ function parseCSS (data) {
     return result;
 }
 
-function generatePairs (parsedCSS) {
+function generatePairs(parsedCSS) {
     var pairCombinations = {};
     var result = [];
     for (var i = 0; i < parsedCSS.length; i++) {
@@ -79,10 +88,10 @@ function generatePairs (parsedCSS) {
     return result;
 }
 
-function compare (pairs) {
+function compare(pairs) {
     for (var i = 0; i < pairs.length; i++) {
-        for(var j = 0; j < pairs[i].objects[0].property.length; j++) {
-            for(var k = 0; k < pairs[i].objects[1].property.length; k++) {
+        for (var j = 0; j < pairs[i].objects[0].property.length; j++) {
+            for (var k = 0; k < pairs[i].objects[1].property.length; k++) {
                 if (pairs[i].objects[0].property[j].propertyName == pairs[i].objects[1].property[k].propertyName) {
                     if (pairs[i].objects[0].property[j].propertyValue == pairs[i].objects[1].property[k].propertyValue) {
                         pairs[i].matchCount++;
@@ -94,7 +103,7 @@ function compare (pairs) {
     return pairs;
 }
 
-function clearNotEnoughMatch (pairs, matchCount) {
+function clearNotEnoughMatch(pairs, matchCount) {
     var result = [];
     for (var i = 0; i < pairs.length; i++) {
         if (pairs[i].matchCount < matchCount) continue;
@@ -103,7 +112,7 @@ function clearNotEnoughMatch (pairs, matchCount) {
     return result;
 }
 
-function sort (pairs) {
+function sort(pairs) {
     for (var i = 0; i < pairs.length; i++) {
         for (var j = 0; j < pairs.length; j++) {
             if (pairs[i].matchCount > pairs[j].matchCount) {
@@ -116,8 +125,11 @@ function sort (pairs) {
     return pairs;
 }
 
-function display (pairs) {
+function display(pairs) {
     for (var i = 0; i < pairs.length; i++) {
         console.log(pairs[i].matchCount, ' ||| ', pairs[i].objects[0].selector, ' ||| ', pairs[i].objects[1].selector);
     }
 }
+
+var arguments = process.argv.splice(2);
+processCSSFile(arguments[0]);
